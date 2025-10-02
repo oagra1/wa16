@@ -652,6 +652,44 @@ export default {
     }
   },
   methods: {
+    async restoreProStatus() {
+      return new Promise((resolve) => {
+        chrome.storage.local.get(
+          ['paid_mark', 'myapp_activation', 'permissionInfo', 'permissionCode', 'myapp_license'],
+          (result) => {
+            this.paidMark = !!result.paid_mark
+            this.myappActivation = !!result.myapp_activation
+            this.permissionInfo = result.permissionInfo || null
+
+            const storedPermissionCode =
+              typeof result.permissionCode === 'string' ? result.permissionCode : ''
+            const hasActiveLicense =
+              this.paidMark === true &&
+              this.myappActivation === true &&
+              !!result.myapp_license
+
+            if (storedPermissionCode) {
+              this.permissionCode = storedPermissionCode
+            }
+
+            if (hasActiveLicense) {
+              const proCode =
+                (this.permissionInfo && this.permissionInfo.plink_id) ||
+                storedPermissionCode ||
+                'supabase_pro'
+              if (!this.permissionCode) {
+                this.permissionCode = proCode
+              }
+              if (!storedPermissionCode && proCode) {
+                chrome.storage.local.set({ permissionCode: proCode })
+              }
+            }
+
+            resolve()
+          }
+        )
+      })
+    },
     /**
      * @description: 赋予免费用户试用权限
      * @return {*}
@@ -699,6 +737,7 @@ export default {
     async changePermissionCode(permissionCode, transaction_id, whatsappNumber) {
       if (permissionCode) {
         this.permissionCode = permissionCode
+        chrome.storage.local.set({ permissionCode })
       } else {
         const shouldMarkPro =
           this.paidMark === true ||
@@ -706,8 +745,10 @@ export default {
           (this.permissionInfo && this.permissionInfo.status === 'active')
         if (shouldMarkPro && !this.permissionCode) {
           this.permissionCode = 'supabase_pro'
+          chrome.storage.local.set({ permissionCode: 'supabase_pro' })
         } else if (!shouldMarkPro && this.permissionCode === 'supabase_pro') {
           this.permissionCode = ''
+          chrome.storage.local.set({ permissionCode: '' })
         }
       }
       const tab = await chrome.tabs.query({
@@ -1717,6 +1758,7 @@ export default {
     }
   },
   async mounted() {
+    await this.restoreProStatus()
     let _This = this
     this._storageChangeHandler = (changes, area) => {
       if (area !== 'local') return
