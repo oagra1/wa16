@@ -1411,6 +1411,7 @@ export default {
     } catch (error) {
       console.error('[MIG] persist MIGRATION flag from popup failed', error)
     }
+    await this.restoreProStatus()
     let jsPath = '/js/inject/obfuscate.js'
     let temp = document.createElement('script')
     temp.setAttribute('type', 'text/javascript')
@@ -1754,7 +1755,6 @@ export default {
     }
   },
   async mounted() {
-    await this.restoreProStatus()
     let _This = this
     this._storageChangeHandler = (changes, area) => {
       if (area !== 'local') return
