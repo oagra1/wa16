@@ -696,6 +696,41 @@ export default {
     closeSuggestion() {
       this.isShowSuggestion = false
     },
+    async restoreProStatus() {
+      return new Promise((resolve) => {
+        chrome.storage.local.get(
+          ['paid_mark', 'myapp_activation', 'permissionInfo', 'permissionCode', 'myapp_license'],
+          (result) => {
+            this.paidMark = !!result.paid_mark
+            this.myappActivation = !!result.myapp_activation
+            this.permissionInfo = result.permissionInfo || null
+
+            const hasActiveLicense =
+              (this.paidMark && this.myappActivation && !!result.myapp_license) ||
+              (this.permissionInfo && this.permissionInfo.status === 'active')
+
+            if (hasActiveLicense) {
+              const restoredCode =
+                (this.permissionInfo && this.permissionInfo.plink_id) ||
+                result.permissionCode ||
+                'supabase_pro'
+
+              this.permissionCode = restoredCode
+              if (result.permissionCode !== restoredCode) {
+                chrome.storage.local.set({ permissionCode: restoredCode })
+              }
+            } else if (this.permissionCode) {
+              this.permissionCode = ''
+              if (result.permissionCode) {
+                chrome.storage.local.set({ permissionCode: '' })
+              }
+            }
+
+            resolve()
+          }
+        )
+      })
+    },
     async changePermissionCode(permissionCode, transaction_id, whatsappNumber) {
       if (permissionCode) {
         this.permissionCode = permissionCode
@@ -710,6 +745,8 @@ export default {
           this.permissionCode = ''
         }
       }
+
+      chrome.storage.local.set({ permissionCode: this.permissionCode || '' })
       const tab = await chrome.tabs.query({
         active: true,
         currentWindow: true
@@ -1717,6 +1754,7 @@ export default {
     }
   },
   async mounted() {
+    await this.restoreProStatus()
     let _This = this
     this._storageChangeHandler = (changes, area) => {
       if (area !== 'local') return
