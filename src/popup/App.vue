@@ -1437,9 +1437,11 @@ export default {
       console.error('[MIG] persist MIGRATION flag from popup failed', error)
     }
     await this.restoreProStatus()
+codex/document-lifecycle-of-popup-component-39qnol
     console.log('🔥 [CREATED] Finalizou!')
     console.log('🔥 [CREATED] permissionCode final:', this.permissionCode)
     console.log('🔥 [CREATED] permissionText:', this.permissionText)
+main
     let jsPath = '/js/inject/obfuscate.js'
     let temp = document.createElement('script')
     temp.setAttribute('type', 'text/javascript')
@@ -1783,8 +1785,11 @@ export default {
     }
   },
   async mounted() {
+codex/document-lifecycle-of-popup-component-39qnol
     console.log('⚡ [MOUNTED] Iniciando...')
     console.log('⚡ [MOUNTED] permissionCode:', this.permissionCode)
+=======
+main
     let _This = this
     this._storageChangeHandler = (changes, area) => {
       if (area !== 'local') return
