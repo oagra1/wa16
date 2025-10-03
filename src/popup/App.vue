@@ -619,7 +619,11 @@ export default {
       return legacy || paid || activated || statusActive
     },
     permissionText() {
-      return this.isPro ? 'Pro' : 'Free'
+      console.log('🔄 [COMPUTED] Executando...')
+      console.log('🔄 [COMPUTED] permissionCode atual:', this.permissionCode)
+      const result = this.isPro ? 'Pro' : 'Free'
+      console.log('🔄 [COMPUTED] Retornando:', result)
+      return result
     },
     pauseAndSendBtn() {
       return {
@@ -697,10 +701,18 @@ export default {
       this.isShowSuggestion = false
     },
     async restoreProStatus() {
+      console.log('📦 [RESTORE] Iniciando restore...')
       return new Promise((resolve) => {
         chrome.storage.local.get(
           ['paid_mark', 'myapp_activation', 'permissionInfo', 'permissionCode', 'myapp_license'],
           (result) => {
+            console.log('📦 [RESTORE] Storage completo:', result)
+            console.log('📦 [RESTORE] paid_mark:', result.paid_mark)
+            console.log('📦 [RESTORE] myapp_activation:', result.myapp_activation)
+            console.log('📦 [RESTORE] myapp_license:', result.myapp_license)
+            console.log('📦 [RESTORE] permissionInfo:', result.permissionInfo)
+            console.log('📦 [RESTORE] permissionCode do storage:', result.permissionCode)
+
             this.paidMark = !!result.paid_mark
             this.myappActivation = !!result.myapp_activation
             this.permissionInfo = result.permissionInfo || null
@@ -709,23 +721,34 @@ export default {
               (this.paidMark && this.myappActivation && !!result.myapp_license) ||
               (this.permissionInfo && this.permissionInfo.status === 'active')
 
+            console.log('📦 [RESTORE] hasActiveLicense?', hasActiveLicense)
+
             if (hasActiveLicense) {
               const restoredCode =
                 (this.permissionInfo && this.permissionInfo.plink_id) ||
                 result.permissionCode ||
                 'supabase_pro'
+              console.log('📦 [RESTORE] Código Pro calculado:', restoredCode)
+              console.log('📦 [RESTORE] ANTES de setar - this.permissionCode:', this.permissionCode)
 
               this.permissionCode = restoredCode
+              console.log('📦 [RESTORE] DEPOIS de setar - this.permissionCode:', this.permissionCode)
               if (result.permissionCode !== restoredCode) {
+                console.log('📦 [RESTORE] Salvando permissionCode no storage...')
                 chrome.storage.local.set({ permissionCode: restoredCode })
               }
             } else if (this.permissionCode) {
+              console.log('📦 [RESTORE] Sem licença ativa, limpando permissionCode')
               this.permissionCode = ''
               if (result.permissionCode) {
+                console.log('📦 [RESTORE] Limpando permissionCode no storage...')
                 chrome.storage.local.set({ permissionCode: '' })
               }
+            } else {
+              console.log('📦 [RESTORE] Sem licença ativa e permissionCode já vazio')
             }
 
+            console.log('📦 [RESTORE] Finalizando...')
             resolve()
           }
         )
@@ -1396,6 +1419,8 @@ export default {
     }
   },
   created: async function () {
+    console.log('🔥 [CREATED] Iniciando...')
+    console.log('🔥 [CREATED] permissionCode inicial:', this.permissionCode)
     try {
       window.MIGRATION_SIMPLE_FLOW = MIGRATION_SIMPLE_FLOW
     } catch (error) {
@@ -1412,6 +1437,11 @@ export default {
       console.error('[MIG] persist MIGRATION flag from popup failed', error)
     }
     await this.restoreProStatus()
+codex/document-lifecycle-of-popup-component-39qnol
+    console.log('🔥 [CREATED] Finalizou!')
+    console.log('🔥 [CREATED] permissionCode final:', this.permissionCode)
+    console.log('🔥 [CREATED] permissionText:', this.permissionText)
+main
     let jsPath = '/js/inject/obfuscate.js'
     let temp = document.createElement('script')
     temp.setAttribute('type', 'text/javascript')
@@ -1755,6 +1785,11 @@ export default {
     }
   },
   async mounted() {
+codex/document-lifecycle-of-popup-component-39qnol
+    console.log('⚡ [MOUNTED] Iniciando...')
+    console.log('⚡ [MOUNTED] permissionCode:', this.permissionCode)
+=======
+main
     let _This = this
     this._storageChangeHandler = (changes, area) => {
       if (area !== 'local') return
@@ -1921,6 +1956,7 @@ export default {
       this.isShowDrainageDialog = true
     }
     this.getLabelOptionsAndGroupOptions()
+    console.log('⚡ [MOUNTED] Finalizou!')
   }
 }
 </script>
